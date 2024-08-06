@@ -3,114 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Hacking Simulation</title>
+    <title>Fake Hacking Terminal</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000;
-            color: #0f0;
+            margin: 0;
+            padding: 0;
             text-align: center;
-            padding: 20px;
-            position: relative;
-            height: 100vh;  /* Full viewport height */
-            overflow: hidden; /* Prevent scrollbars */
         }
-        #output {
-            font-family: monospace;
-            white-space: pre-wrap;
-            margin-bottom: 20px;
-            border: 1px solid #0f0;
-            padding: 10px;
-            background-color: #000;
-            color: #0f0;
-        }
-        #hackVideo {
-            display: none;             /* Hide the video initially */
-            margin: 0 auto;           /* Center horizontally */
-            width: 80%;                /* Set the width of the video */
-            max-width: 800px;          /* Optional: Set a maximum width */
-            height: auto;             /* Maintain aspect ratio */
-            position: absolute;       /* Absolute positioning */
-            bottom: 20px;             /* Position at the bottom */
-            left: 50%;                /* Center horizontally */
-            transform: translateX(-50%);  /* Center horizontally */
-        }
-        #startButton {
-            background-color: #0f0;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        #startButton:hover {
-            background-color: #0c0;
-        }
-        #systemMessage {
-            display: none;            /* Hide initially */
-            font-size: 18px;
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #ff0000; /* Red background for alert */
-            color: #fff;              /* White text */
-            border: 1px solid #f00;
-            border-radius: 5px;
-            position: absolute;       /* Absolute positioning */
-            top: 50%;                 /* Center vertically */
-            left: 50%;                /* Center horizontally */
-            transform: translate(-50%, -50%);  /* Center horizontally and vertically */
-            max-width: 90%;
-            text-align: center;       /* Center text */
-        }
-        #dangerMessage {
-            display: none;            /* Hide initially */
-            font-size: 18px;
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #ff0000; /* Red background for alert */
-            color: #fff;              /* White text */
-            border: 1px solid #f00;
-            border-radius: 5px;
-            position: absolute;       /* Absolute positioning */
-            top: 60%;                 /* Position below system message */
-            left: 50%;                /* Center horizontally */
-            transform: translate(-50%, -50%);  /* Center horizontally and vertically */
-            max-width: 90%;
-            text-align: center;       /* Center text */
-        }
+
         #overlay {
-            display: none;            /* Hide initially */
-            position: fixed;         /* Fixed positioning to cover entire screen */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
-            z-index: 9999;           /* Ensure it is on top of all content */
-            cursor: not-allowed;     /* Indicate that interaction is not allowed */
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+            color: white;
+            font-size: 24px;
+            line-height: 100vh;
         }
-        #overlayContent {
-            color: #fff;
-            font-size: 20px;
-            text-align: center;
-            position: absolute;
-            top: 50%;
+
+        #dangerMessage {
+            position: fixed;
+            top: 10%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        #output {
+            margin: 20px auto;
+            padding: 10px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f4f4f4;
+        }
+
+        #startButton {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #hackVideo {
+            display: none;
+            width: 80%;
+            height: auto;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
-    <div id="overlay">
-        <div id="overlayContent">Your system is in danger.</div>
-    </div>
-    <div id="systemMessage">Your system is experiencing a problem.</div>
-    <div id="dangerMessage">Your system is in danger.</div>
-    <button id="startButton">Start Simulation</button>
+    <div id="overlay">Please wait...</div>
+    <div id="dangerMessage">Your system is experiencing a problem.</div>
     <div id="output"></div>
-    <video id="hackVideo" src="videoplayback.mp4" style="display: none;" muted></video>
-    <script src="script.js"></script>
+    <button id="startButton">Start Simulation</button>
+    <video id="hackVideo" src="videoplayback.mp4"></video>
+    <audio id="beepSound" src="beep.mp3" preload="auto"></audio>
+
+    <script>
+        let isProcessing = false;  // Flag to check if the process is ongoing
+
+        document.getElementById('startButton').addEventListener('click', async () => {
+            if (isProcessing) return;  // Prevent starting the process if it's already running
+
+            // Set flag to indicate processing
+            isProcessing = true;
+
+            // Display the overlay to simulate freeze
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'block';
+
+            // Display the danger message
+            const dangerMessage = document.getElementById('dangerMessage');
+            dangerMessage.style.display = 'block';
+
+            // Hide the button after click
+            const startButton = document.getElementById('startButton');
+            startButton.style.display = 'none';
+
+            // Block interactions with the page
+            blockInteractions();
+
+            // Proceed with the simulation
+            await simulateHacking();
+
+            // Hide the overlay and danger message after the simulation completes
+            overlay.style.display = 'none';
+            dangerMessage.style.display = 'none';
+
+            // Show and play the video
+            const video = document.getElementById('hackVideo');
+            video.style.display = 'block';  // Ensure the video element is visible
+            try {
+                await video.play();
+            } catch (error) {
+                console.error('Video failed to play:', error);
+            }
+
+            // Reset the processing flag
+            isProcessing = false;
+        });
+
+        async function simulateHacking() {
+            const output = document.getElementById('output');
+            output.textContent = '';  // Clear previous output
+
+            // Load and play the silent audio
+            const beepSound = document.getElementById('beepSound');
+            beepSound.loop = true;  // Loop the beep sound
+
+            // Try to play the sound
+            try {
+                beepSound.play();
+            } catch (error) {
+                console.error('Beep sound failed to play:', error);
+            }
+
+            const messages = [
+                'Hacking Initialized',
+                'Bypassing Security Protocols',
+                'Establishing Connection to Central Server',
+                'Accessing Secure Database',
+                'Decrypting Sensitive Information',
+                'File Transfer in Progress',
+                'Verifying Data Integrity',
+                'File Transfer Complete',
+                'Connection Terminated'
+            ];
+
+            for (let i = 0; i < messages.length; i++) {
+                if (i === messages.length - 1) {
+                    // Display the last message without dot effect
+                    output.textContent = messages[i];
+                } else {
+                    await showMessageWithDots(messages[i], 500);  // Shorter delay for dots
+                }
+            }
+
+            // Stop the beep sound
+            beepSound.pause();
+            beepSound.currentTime = 0;  // Reset the beep sound
+        }
+
+        async function showMessageWithDots(message, dotDelay) {
+            const output = document.getElementById('output');
+            const dots = ['.', '..', '...'];
+
+            // Display the message with dots repeating
+            for (let i = 0; i < 2; i++) {  // Reduced number of repeats
+                for (const dot of dots) {
+                    output.textContent = `${message}${dot}`;
+                    await delay(dotDelay);
+                }
+            }
+            output.textContent = message;  // Reset message after showing all dots
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function blockInteractions() {
+            // Prevent default actions and interactions
+            window.onbeforeunload = function() {
+                return 'Your system is still processing. Are you sure you want to leave?';
+            };
+
+            // Disable the refresh button
+            window.addEventListener('beforeunload', function (e) {
+                e.preventDefault();
+                e.returnValue = '';  // Standard for most browsers
+            });
+        }
+    </script>
 </body>
 </html>

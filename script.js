@@ -14,21 +14,28 @@ document.getElementById('startButton').addEventListener('click', async () => {
     const dangerMessage = document.getElementById('dangerMessage');
     dangerMessage.style.display = 'block';
 
-    // Hide the system message immediately
-    const systemMessage = document.getElementById('systemMessage');
-    systemMessage.style.display = 'none';
-
     // Hide the button after click
     const startButton = document.getElementById('startButton');
     startButton.style.display = 'none';
 
+    // Block interactions with the page
+    blockInteractions();
+
     // Proceed with the simulation
     await simulateHacking();
 
-    // Hide the overlay after the simulation completes
+    // Hide the overlay and danger message after the simulation completes
     overlay.style.display = 'none';
-    // Hide the danger message after the simulation completes
     dangerMessage.style.display = 'none';
+
+    // Show and play the video
+    const video = document.getElementById('hackVideo');
+    video.style.display = 'block';  // Ensure the video element is visible
+    try {
+        await video.play();
+    } catch (error) {
+        console.error('Video failed to play:', error);
+    }
 
     // Reset the processing flag
     isProcessing = false;
@@ -44,7 +51,7 @@ async function simulateHacking() {
 
     // Try to play the sound
     try {
-        await beepSound.play();
+        beepSound.play();
     } catch (error) {
         console.error('Beep sound failed to play:', error);
     }
@@ -73,17 +80,12 @@ async function simulateHacking() {
     // Stop the beep sound
     beepSound.pause();
     beepSound.currentTime = 0;  // Reset the beep sound
-
-    // Show and play the video
-    const video = document.getElementById('hackVideo');
-    video.style.display = 'block';  // Ensure the video element is visible
-    video.play();  // Play the video
 }
 
 async function showMessageWithDots(message, dotDelay) {
     const output = document.getElementById('output');
     const dots = ['.', '..', '...'];
-    
+
     // Display the message with dots repeating
     for (let i = 0; i < 2; i++) {  // Reduced number of repeats
         for (const dot of dots) {
@@ -98,17 +100,15 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Block interactions with the page
 function blockInteractions() {
     // Prevent default actions and interactions
     window.onbeforeunload = function() {
         return 'Your system is still processing. Are you sure you want to leave?';
     };
-}
 
-// Enable the blocking function when processing starts
-document.addEventListener('DOMContentLoaded', () => {
-    if (isProcessing) {
-        blockInteractions();
-    }
-});
+    // Disable the refresh button
+    window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '';  // Standard for most browsers
+    });
+}
