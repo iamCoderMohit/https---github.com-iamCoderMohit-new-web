@@ -1,4 +1,15 @@
+let isProcessing = false;  // Flag to check if the process is ongoing
+
 document.getElementById('startButton').addEventListener('click', async () => {
+    if (isProcessing) return;  // Prevent starting the process if it's already running
+
+    // Set flag to indicate processing
+    isProcessing = true;
+
+    // Display the overlay to simulate freeze
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'block';
+
     // Display the danger message
     const dangerMessage = document.getElementById('dangerMessage');
     dangerMessage.style.display = 'block';
@@ -14,21 +25,25 @@ document.getElementById('startButton').addEventListener('click', async () => {
     // Proceed with the simulation
     await simulateHacking();
 
+    // Hide the overlay after the simulation completes
+    overlay.style.display = 'none';
     // Hide the danger message after the simulation completes
     dangerMessage.style.display = 'none';
+
+    // Reset the processing flag
+    isProcessing = false;
 });
 
 async function simulateHacking() {
     const output = document.getElementById('output');
     output.textContent = '';  // Clear previous output
 
-    // Load and play the beep sound
-    const beepSound = new Audio('beep.mp3');  // Ensure you have a beep.mp3 file in your directory
-    beepSound.loop = true;  // Loop the beep sound
+    // Load and play the silent audio
+    const beepSound = document.getElementById('beepSound');
 
     // Try to play the sound
     try {
-        await beepSound.play();
+        beepSound.play();
     } catch (error) {
         console.error('Beep sound failed to play:', error);
     }
@@ -81,3 +96,18 @@ async function showMessageWithDots(message, dotDelay) {
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// Block interactions with the page
+function blockInteractions() {
+    // Prevent default actions and interactions
+    window.onbeforeunload = function() {
+        return 'Your system is still processing. Are you sure you want to leave?';
+    };
+}
+
+// Enable the blocking function when processing starts
+document.addEventListener('DOMContentLoaded', () => {
+    if (isProcessing) {
+        blockInteractions();
+    }
+});
