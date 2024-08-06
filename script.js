@@ -40,10 +40,11 @@ async function simulateHacking() {
 
     // Load and play the silent audio
     const beepSound = document.getElementById('beepSound');
+    beepSound.loop = true;  // Loop the beep sound
 
     // Try to play the sound
     try {
-        beepSound.play();
+        await beepSound.play();
     } catch (error) {
         console.error('Beep sound failed to play:', error);
     }
@@ -75,7 +76,7 @@ async function simulateHacking() {
 
     // Show and play the video
     const video = document.getElementById('hackVideo');
-    video.style.display = 'block';  // Show the video
+    video.style.display = 'block';  // Ensure the video element is visible
     video.play();  // Play the video
 }
 
